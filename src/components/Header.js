@@ -15,7 +15,6 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
-  
   const Header = ({resetSearch}) => {
 
     const classes = useStyles();

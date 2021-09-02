@@ -1,30 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { LineChart, Line, CartesianGrid, XAxis, Tooltip, YAxis, ResponsiveContainer } from 'recharts';
 import spinner from '../assets/loading.gif'
-import { ButtonGroup } from '@material-ui/core';
-import { Button } from '@material-ui/core';
 import Graph from './Graph';
-import { makeStyles } from '@material-ui/core/styles';
-
-
-
-const useStyles = makeStyles((theme) => ({
-    rangebutton: {
-        height: '4vmin',
-        // marginLeft: "10vmin",
-        marginTop: "1vmin"
-    },
-    selectedbutton: {
-        height: '4vmin',
-        // marginLeft: "10vmin",
-        marginTop: "1vmin",
-        color: 'black',
-        fontSize: "2vmin"
-
-    },
-}));
-
+import keys from '../secret'
 
 const processData = (cutoffDate, tickerData) => {
 
@@ -68,48 +46,37 @@ const processData = (cutoffDate, tickerData) => {
 
 const processVantageData = (vantageData, cutoffDate) => {
 
-    // console.log('cutoff date')
-    console.log(cutoffDate)
-
-    let displayData = []
-    let dateArray = []
-
-    console.log(vantageData)
-
-    Object.keys(vantageData['results']).forEach((item) => {
-
-        let mention_date = vantageData['results'][item]['t']
-        // console.log(vantageData['results'][item]['t'])
-
-        // console.log(mention_date)
-        // console.log(cutoffDate.getTime())
-        // console.log(cutoffDate.getTime() < mention_date/1000)
-
-        if ((mention_date) > cutoffDate.getTime()) {
-
-            let avg = (parseFloat(vantageData['results'][item]['h']) + parseFloat(vantageData['results'][item]['l']))
-
-            let vd = new Date(0); // The 0 there is the key, which sets the date to the epoch
-            vd.setUTCSeconds((vantageData['results'][item]['t']) / 1000);
-
-
-            let displayItem = {
-
-                date: vd.toISOString().split('T')[0],
-                avg: parseFloat(avg.toFixed(2))
-
+    if (vantageData['resultsCount'] > 0){
+        let displayData = []
+        let dateArray = []
+    
+        Object.keys(vantageData['results']).forEach((item) => {
+    
+            let mention_date = vantageData['results'][item]['t']
+    
+            if ((mention_date) > cutoffDate.getTime()) {
+    
+                let avg = (parseFloat(vantageData['results'][item]['h']) + parseFloat(vantageData['results'][item]['l']))
+                let vd = new Date(0); // The 0 there is the key, which sets the date to the epoch
+                vd.setUTCSeconds((vantageData['results'][item]['t']) / 1000);
+    
+                let displayItem = {
+                    'date': vd.toISOString().split('T')[0],
+                    'avg': parseFloat((avg.toFixed(2)) / 2)
+                }
+                displayData.push(displayItem)
+    
+                let d = new Date(0)
+                d.setUTCSeconds(mention_date / 1000)
+                dateArray.push(d.toISOString().split('T')[0])
+    
             }
+        })
+        return displayData
 
-            displayData.push(displayItem)
-
-            let d = new Date(0)
-            d.setUTCSeconds(mention_date / 1000)
-            dateArray.push(d.toISOString().split('T')[0])
-
-        }
-    })
-    console.log(displayData)
-    return displayData
+    } else {
+        return {}
+    }
 }
 
 const fetchAndReturnDisplayData = (ticker, cutoff, setTickerData) => {
@@ -117,17 +84,10 @@ const fetchAndReturnDisplayData = (ticker, cutoff, setTickerData) => {
     return fetch(`http://localhost:9292/tickers/name/${ticker}`)
         .then(resp => resp.json())
         .then(data => {
-
-            // console.log('We should only see this once per reload')
             setTickerData(data)
-            // let cutoff = new Date()
-            // cutoff.setDate(cutoff.getDate() - 7);
-
             let dataToBeGraphed = processData(cutoff, data)
             return dataToBeGraphed
-            // setDataLoaded(true)
         })
-
 }
 
 const fetchAndReturnVantageData = (ticker, cutoff, setVantageTickerData) => {
@@ -139,35 +99,21 @@ const fetchAndReturnVantageData = (ticker, cutoff, setVantageTickerData) => {
     let ly = new Date(0)
     ly.setUTCSeconds(yearAgo / 1000)
 
-    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=bWEa_uqaWdOXNLpPFHRMgQ3YksGyOatW`)
-    .then(resp => resp.json())
-    .then(data => {
+    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=${keys.finData}`)
+        .then(resp => resp.json())
+        .then(data => {
 
-        console.log(data)
-        setVantageTickerData(data) //save the data so when resolution is changed no re-render occurs
-
-
-        
-        let toBeGraphed = processVantageData(data, cutoff)
-        console.log(toBeGraphed)
-        return toBeGraphed
-
-
-        // let processedData = processVantageData(cutoff, data)
-
-
-
-    })
-
+            if (data.status === "ERROR") {
+                return 'error'
+            }
+            console.log(data)
+            setVantageTickerData(data) //save the data so when resolution is changed no re-render occurs
+            let toBeGraphed = processVantageData(data, cutoff)
+            return toBeGraphed
+        })
 }
 
-
 const Ticker = () => {
-
-
-    //Should be responsible for loading and serving the display data to Graph.
-
-    const classes = useStyles();
 
     const [tickerData, setTickerData] = useState({})
     const [selfDataLoaded, setSelfDataLoaded] = useState(false)
@@ -187,64 +133,51 @@ const Ticker = () => {
 
         fetchAndReturnDisplayData(ticker_name.ticker_name, cutoff, setTickerData)
             .then((data) => {
-                // console.log(data)
                 setProcessedDisplayData(data)
                 setSelfDataLoaded(true)
             })
 
         fetchAndReturnVantageData(ticker_name.ticker_name, cutoff, setVantageTickerData)
-        .then((data) => {
-            // console.log(data)
-            setProcessedVantageData(data)
-            setVantageTickerDataLoaded(true)
-        })
+            .then((data) => {
+                if (data === 'error') {
+                    alert('Rate Limit Exceeded, Please wait 1 minute and try again.')
+                } else {
+                    setProcessedVantageData(data)
+                    setVantageTickerDataLoaded(true)
+                }
+            })
     }, [])
-
 
     const handleRangeClick = (e) => {
         setSelectedTimeFrame(e.target.innerText)
     }
 
-
     useEffect(() => {
-        // let today = new Date()
-        console.log('UseEffect Activated Via TimeFrameSelection Changing')
         if (selfDataLoaded) {
             if (selectedTimeFrame === 'WEEK') {
                 let cutoff = new Date()
                 cutoff.setDate(cutoff.getDate() - 7);
-    
-
                 setProcessedDisplayData(processData(cutoff, tickerData))
                 setProcessedVantageData(processVantageData(vantageTickerData, cutoff))
-                
-                
+
             } else if (selectedTimeFrame === "MONTH") {
                 let cutoff = new Date()
                 cutoff.setMonth(cutoff.getMonth() - 1);
-                
                 setProcessedDisplayData(processData(cutoff, tickerData))
                 setProcessedVantageData(processVantageData(vantageTickerData, cutoff))
-                // let dataToBeGraphed = processData(cutoff, tickerData)
-                // setProcessedDisplayData(dataToBeGraphed)
-    
             } else if (selectedTimeFrame === "YEAR") {
                 let cutoff = new Date()
                 cutoff.setFullYear(cutoff.getFullYear() - 1);
-                
+
                 setProcessedDisplayData(processData(cutoff, tickerData))
                 setProcessedVantageData(processVantageData(vantageTickerData, cutoff))
             }
         }
     }, [selectedTimeFrame])
 
-
-
-    // console.log(processedDisplayData)
-
     return (
         <div>
-            {selfDataLoaded ?
+            {selfDataLoaded && vantageTickerDataLoaded ?
                 <Graph
                     ticker_name={ticker_name}
                     processedDisplayData={processedDisplayData}

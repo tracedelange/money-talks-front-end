@@ -3,7 +3,7 @@ import { Button, TextField } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import { InputAdornment } from '@material-ui/core';
 import SearchResults from './SearchResults';
-
+import PopularList from "./PopularList"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,14 +29,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const HomePage = () => {
+const HomePage = ({popular}) => {
 
     const classes = useStyles();
 
     const [tickerInput, setTickerInput] = useState('')
 
     const handleTickerInputChange = (e) => {
-        console.log(e.target.value)
         let new_input = e.target.value.toUpperCase().replace(' ', '')
         setTickerInput(new_input)
     }
@@ -47,18 +46,12 @@ const HomePage = () => {
     const handleSearchSubmit = (e, searchInput) => {
         e.preventDefault()
 
-
-
         fetch(`http://localhost:9292/tickers/search/${searchInput}`)
-        .then(resp => resp.json())
-        .then(data => {
-            setSearchData(data)
-        })
+            .then(resp => resp.json())
+            .then(data => {
+                setSearchData(data)
+            })
     }
-
-
-    
-
 
     return (
         <div className='search-page'>
@@ -75,10 +68,10 @@ const HomePage = () => {
                                 {"$"}
                             </InputAdornment>
                     }}
-                label="Ticker Symbol"
-                variant="outlined"
-                onChange={handleTickerInputChange}
-                value={tickerInput}
+                    label="Ticker Symbol"
+                    variant="outlined"
+                    onChange={handleTickerInputChange}
+                    value={tickerInput}
                 />
 
                 <Button
@@ -87,8 +80,8 @@ const HomePage = () => {
                     Search
                 </Button>
             </form>
-            
-            {searchData.length > 0 ? <SearchResults searchData={searchData} /> : null}
+
+            {searchData.length > 0 ? <SearchResults searchData={searchData} /> : popular ? <PopularList popular={popular} /> : null }
 
         </div>
     )
