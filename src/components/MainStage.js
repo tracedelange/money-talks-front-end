@@ -30,7 +30,7 @@ const MainStage = () => {
         d.setDate(d.getDate() - 7)
         let queryDate = (d.toISOString()).split('T')[0]
 
-        fetch(`http://localhost:9292/mentions/by-date/${queryDate}`)
+        fetch(`https://money-talks-sinatra-api.herokuapp.com/mentions/by-date/${queryDate}`)
             .then(resp => resp.json())
             .then(data => {
                 setPopular(data)

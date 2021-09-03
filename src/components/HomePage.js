@@ -46,7 +46,7 @@ const HomePage = ({popular}) => {
     const handleSearchSubmit = (e, searchInput) => {
         e.preventDefault()
 
-        fetch(`http://localhost:9292/tickers/search/${searchInput}`)
+        fetch(`https://money-talks-sinatra-api.herokuapp.com/tickers/search/${searchInput}`)
             .then(resp => resp.json())
             .then(data => {
                 setSearchData(data)

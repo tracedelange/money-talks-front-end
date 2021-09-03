@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import spinner from '../assets/loading.gif'
 import Graph from './Graph';
-import keys from '../secret'
+// import keys from '../secret'
+
+const finKey = process.env.REACT_APP_FINKEY
 
 const processData = (cutoffDate, tickerData) => {
 
@@ -81,7 +83,7 @@ const processVantageData = (vantageData, cutoffDate) => {
 
 const fetchAndReturnDisplayData = (ticker, cutoff, setTickerData) => {
 
-    return fetch(`http://localhost:9292/tickers/name/${ticker}`)
+    return fetch(`https://money-talks-sinatra-api.herokuapp.com/tickers/name/${ticker}`)
         .then(resp => resp.json())
         .then(data => {
             setTickerData(data)
@@ -99,7 +101,7 @@ const fetchAndReturnVantageData = (ticker, cutoff, setVantageTickerData) => {
     let ly = new Date(0)
     ly.setUTCSeconds(yearAgo / 1000)
 
-    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=${keys.finData}`)
+    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=${finKey}`)
         .then(resp => resp.json())
         .then(data => {
 
