@@ -101,7 +101,7 @@ const fetchAndReturnVantageData = (ticker, cutoff, setVantageTickerData) => {
     let ly = new Date(0)
     ly.setUTCSeconds(yearAgo / 1000)
 
-    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=${finKey}`)
+    return fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${ly.toISOString().split('T')[0]}/${today}?adjusted=true&sort=asc&limit=1000&apiKey=${process.env.REACT_APP_FINKEY}`)
         .then(resp => resp.json())
         .then(data => {
 
