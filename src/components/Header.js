@@ -2,6 +2,7 @@ import React from 'react'
 import { Paper } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import { NavLink } from 'react-router-dom';
+import mascot from '../assets/bfb.png'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -24,8 +25,7 @@ const useStyles = makeStyles((theme) => ({
             <Paper className={classes.root} elevation={3}>
                 <div className="header-content" >
                     <NavLink to='/' onClick={resetSearch} ><h2>Money Talks</h2></NavLink>
-
-
+                    <img id='header-logo' src={mascot} alt="project-logo" />
                 </div>
             </Paper>
         </div>
